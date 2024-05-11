@@ -11,7 +11,6 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Api.Controllers;
 
-[Route("api/[controller]")]
 [ApiController]
 public class AccountController : ControllerBase
 {
@@ -34,7 +33,6 @@ public class AccountController : ControllerBase
         var validation = await _registerValidator.ValidateAsync(registerDto);
         if (validation.IsValid)
         {
-            //TODO: Add validation for unique username and email
             var user = new User
             {
                 Username = registerDto.Username,
@@ -47,16 +45,16 @@ public class AccountController : ControllerBase
             
             return Authenticate();
         }
-
         return BadRequest(validation.Errors);
     }
-    [HttpPost("api/login")]
+    [HttpPost("/api/login")]
     public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
     {
         var validation = await _loginValidator.ValidateAsync(loginDto);
         if (validation.IsValid)
         {
-            var user = await _dbContext.Users.FirstOrDefaultAsync(x => (x.Username == loginDto.Username || x.Email == loginDto.Username) && x.Password == loginDto.Password);
+            var user = await _dbContext.Users
+                .FirstOrDefaultAsync(x => (x.Username == loginDto.Username || x.Email == loginDto.Username) && x.Password == loginDto.Password);
             if (user != null)
                 return Authenticate();
             return NotFound("Incorrect username or password");
@@ -65,7 +63,7 @@ public class AccountController : ControllerBase
     }
     
     [Authorize]
-    [HttpGet("api/test")]
+    [HttpGet("/api/test")]
     public IActionResult Test()
     {
         return Ok("You are authorized");
